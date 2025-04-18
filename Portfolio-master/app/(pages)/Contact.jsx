@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { animate, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import TextShadingView from "../animations/TextShadingView";
 
-const info = [
+const contactInfo = [
   {
     icon: <FaPhoneAlt />,
     title: "Phone",
@@ -28,7 +28,6 @@ const info = [
 ];
 
 const Contact = () => {
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -39,431 +38,230 @@ const Contact = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /* const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    const nameRegex = /^[A-Za-z.]*$/;
-
-    if ((name === "firstName" || name === "lastName") && !nameRegex.test(value)) {
-      setErrors({ ...errors, [name]: "Only letters and dots are allowed" });
-      setTimeout(() => {
-        setErrors({...errors, [name]: "" });
-      }, 2000); // Delay of 500ms
-      return;
-    }
-    else{
-      setErrors({...errors, [name]: "" });
-    }
-
-    setFormData({...formData, [name]: value });
-  }; */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
   
-    // Regex for validations
-    const nameRegex = /^[A-Za-z.\s]*$/; // Only letters and dots
+    // Regex patterns
+    const nameRegex = /^[A-Za-z.\s]*$/;
     const emailRegex = /^[A-Za-z0-9.@]*$/;
     const phoneRegex = /^\+?[0-9]*$/;
     const subjectRegex = /^[A-Za-z0-9.\s]*$/;
   
     let errorMsg = "";
   
-    // Name Validation
+    // Validation logic
     if ((name === "firstName" || name === "lastName") && !nameRegex.test(value)) {
-      errorMsg = "Only letters, spaces and dots are allowed";
+      errorMsg = "Only letters, spaces and dots allowed";
     }
-  
-    // Email Validation
-    if (name === "email"){
+    else if (name === "email") {
       if ((value.match(/@/g) || []).length > 1) {
-        errorMsg = "Only one '@' is allowed";
-      }
-      else if(!emailRegex.test(value)) {
-        errorMsg = "Only letters, numbers and @ are allowed";
+        errorMsg = "Only one '@' allowed";
+      } else if (!emailRegex.test(value)) {
+        errorMsg = "Invalid characters";
       }
     }
-
-    // Subject Validation
-    if (name === "subject" && !subjectRegex.test(value)) {
-      errorMsg = "Only letters, numbers, spaces and dots are allowed";
-    }
-
-    // Phone Number Validation
-    if (name === "phone"){
-      if(value.length > 20){
-        errorMsg = "Phone number should not exceed 20 characters";
-      }
-      else if(!phoneRegex.test(value)) {
+    else if (name === "phone") {
+      if (value.length > 20) {
+        errorMsg = "Max 20 characters";
+      } else if (!phoneRegex.test(value)) {
         errorMsg = "Only numbers allowed";
       }
     }
+    else if (name === "subject" && !subjectRegex.test(value)) {
+      errorMsg = "Invalid characters";
+    }
   
-    // Set error message if there's a validation error
+    // Update errors
     if (errorMsg) {
       setErrors({ ...errors, [name]: errorMsg });
-  
-      // Remove error message after 2 seconds
-      setTimeout(() => {
-        setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-      }, 2000);
+      setTimeout(() => setErrors(prev => ({ ...prev, [name]: "" })), 2000);
       return;
     }
   
-    // Clear errors and update form data
     setErrors({ ...errors, [name]: "" });
     setFormData({ ...formData, [name]: value });
   };
-  
-  const validate = () => {
-    let newErrors = {};
-    let sanitizedFormData = {};
-  
-    // Regex patterns
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const phoneRegex = /^\+?[0-9]{7,20}$/;
-    const nameRegex = /^[A-Za-z. ]*$/; // Only letters, dots, and spaces
-    
-    for (const field in formData) {
-      let value = formData[field].trim(); // Trim spaces
-  
-      // Sanitize all fields (prevent HTML injection)
-      value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  
-      // Validation checks
-      if (!value) {
-        newErrors[field] = "This field is required";
-      } 
-  
-      // Name validation
-      if ((field === "firstName" || field === "lastName") && value.length > 0 && !nameRegex.test(value)) {
-        newErrors[field] = "Only letters, dots, and spaces are allowed";
-      }
-  
-      // Email validation
-      if (field === "email" && value.length > 0 && !emailRegex.test(value)) {
-        newErrors[field] = "Invalid email format";
-      }
-  
-      // Phone validation
-      if (field === "phone" && value.length > 0 && !phoneRegex.test(value)) {
-        newErrors[field] = "Invalid phone number (only digits, 7-20 characters)";
-      }
-  
-      // Store sanitized value
-      sanitizedFormData[field] = value;
-    }
-  
-    setErrors(newErrors);
 
-    if (Object.keys(newErrors).length !== 0) {
-      // Remove error message after 2 seconds
-      setTimeout(() => {
-        setErrors({});
-      }, 6000);
+  const validateForm = () => {
+    const newErrors = {};
+    const requiredFields = ['firstName', 'lastName', 'email', 'message'];
+    
+    requiredFields.forEach(field => {
+      if (!formData[field].trim()) {
+        newErrors[field] = "This field is required";
+      }
+    });
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error("Please fix the errors", { position: 'top-center' });
       return;
     }
-  
-    // Return sanitized data if no errors, otherwise return null
-    return Object.keys(newErrors).length === 0 ? sanitizedFormData : null;
-  };
 
-  const handleSubmit = async(e) => {
-    e.preventDefault();
+    setIsSubmitting(true);
 
-    const validatedData = validate();
-
-    if (validatedData) {
-
-      try {
-
-        const response = await fetch('/api/sendMessage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.NEXT_PUBLIC_API_SECRET_KEY,
-          },
-          body: JSON.stringify(validatedData),
-        })
-
-        if (response.ok) {
-
-          setFormData({
-            firstName: "",
-            lastName: "",
-            email: "",
-            phone: "",
-            subject: "",
-            message: "",
-          });
-  
-          toast.success("Message sent", {
-            className: "custom-toast",
-            position: 'top-center',
-            autoClose: 2000,
-          });
-
-        } else {
-          throw new Error('Failed to send message');
-        }
-      } catch (error) {
-        //console.error('Error:', error);
-        toast.error("Failed to send message. Please try again later.", {
-          className: "custom-toast",
-          position: 'top-left',
-          autoClose: 2500,
-        });
-      }
-
-    }
-    else{
-      //console.log("Form validation failed. Please check the errors.");
-      toast.error("Form validation failed. Please check the errors", {
-        className: "custom-toast",
-        position: 'top-left',
-        autoClose: 2500,
+    try {
+      const response = await fetch('/api/sendMessage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_SECRET_KEY,
+        },
+        body: JSON.stringify({
+          ...formData,
+          // Sanitize inputs
+          message: formData.message.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        }),
       });
-      
+
+      if (response.ok) {
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        });
+        toast.success("Message sent successfully!");
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const itemVariantLeft = {
-    initial: {
-      opacity: 0,
-      x: -100,
-    },
-    animate: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.3 },
-    },
-  }
+  // Animation variants
+  const slideInLeft = {
+    hidden: { opacity: 0, x: -100 },
+    visible: { opacity: 1, x: 0 }
+  };
 
-  const itemVariantRight = {
-    initial: {
-      opacity: 0,
-      x: 100,
-    },
-    animate: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.3 },
-    },
-  }
+  const slideInRight = {
+    hidden: { opacity: 0, x: 100 },
+    visible: { opacity: 1, x: 0 }
+  };
 
-  const viewMargin = "-20% 0px -25% 0px";
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className="container max-auto lg:pt-[70px] mb-8 lg:mb-0">
-      <div className="flex flex-col lg:flex-row gap-[30px]">
-        <div className="order-1 lg:order-none overflow-hidden">
-          {/* Form */}
-          <form className="flex flex-col gap-2 p-6 bg-[#27272c50] rounded-xl">
-            <motion.h3
-              initial={{
-                opacity: 0,
-                x: -100,
-              }}
-              whileInView={{
-                opacity: 1,
-                x: 0,
-                transition: { duration: 0.5 },
-              }}
-              viewport={{
-                margin: "-10% 0px -25% 0px",
-              }}
-              className="text-3xl text-accent pb-4"
-            >
-              Let&apos;s work together
+    <div className="container mx-auto lg:pt-[70px] mb-8 lg:mb-0">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Contact Form */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="flex-1"
+        >
+          <form className="flex flex-col gap-4 p-6 bg-[#27272c50] rounded-xl">
+            <motion.h3 variants={fadeInUp} className="text-3xl text-accent">
+              Let's work together
             </motion.h3>
-            <p className="text-white/60 text-sm">
-              <TextShadingView>
-                I&apos;m here to help you achieve your goals. Let&apos;s connect and create
+            
+            <div className="text-white/60 text-sm">
+              <TextShadingView as="span">
+                I'm here to help you achieve your goals. Let's connect and create
                 a unique digital experience together.
               </TextShadingView>
-            </p>
-            <motion.div
-              className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-              <motion.div 
-                variants={itemVariantLeft} 
-                initial='initial'
-                whileInView='animate'
-                viewport={{
-                  margin: viewMargin
-                }}
-                className={`flex flex-col ${!(errors?.firstName) && 'lg:pb-4'}`}
-              >
-                <Input type="firstName" placeholder="First Name" name="firstName" onChange={handleInputChange} value={formData.firstName} />
-                {errors.firstName && <p className="text-red-400 text-xs">{errors.firstName}</p>}
-              </motion.div>
-              <motion.div 
-                variants={itemVariantRight}
-                initial='initial'
-                whileInView='animate'
-                viewport={{
-                  margin: viewMargin
-                }}
-                className={`flex flex-col ${!(errors?.lastName) && 'lg:pb-4'}`}
-              >
-                <Input type="lastName" placeholder="Last Name" name="lastName" onChange={handleInputChange} value={formData.lastName} />
-                {errors.lastName && <p className="text-red-400 text-xs">{errors.lastName}</p>}
-              </motion.div>
-              <motion.div 
-                variants={itemVariantLeft}
-                initial='initial'
-                whileInView='animate'
-                viewport={{
-                  margin: viewMargin
-                }}
-                className={`flex flex-col ${!(errors?.email) && 'lg:pb-4'}`}
-              >
-                <Input type="email" placeholder="Email" name="email" onChange={handleInputChange} value={formData.email} />
-                {errors.email && <p className="text-red-400 text-xs">{errors.email}</p>}
-              </motion.div>
-              <motion.div 
-                variants={itemVariantRight}
-                initial='initial'
-                whileInView='animate'
-                viewport={{
-                  margin: viewMargin
-                }}
-                className={`flex flex-col pb-2 ${!(errors?.phone) && 'lg:pb-6'}`}
-              >
-                <Input type="phone" placeholder="Phone" name="phone" onChange={handleInputChange} value={formData.phone} />
-                {errors.phone && <p className="text-red-400 text-xs">{errors.phone}</p>}
-              </motion.div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {['firstName', 'lastName', 'email', 'phone'].map((field, i) => (
+                <motion.div
+                  key={field}
+                  variants={i % 2 === 0 ? slideInLeft : slideInRight}
+                  className="flex flex-col"
+                >
+                  <Input
+                    name={field}
+                    placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                    value={formData[field]}
+                    onChange={handleInputChange}
+                  />
+                  {errors[field] && <p className="text-red-400 text-xs mt-1">{errors[field]}</p>}
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div variants={slideInLeft} className="flex flex-col">
+              <Input
+                name="subject"
+                placeholder="Subject"
+                value={formData.subject}
+                onChange={handleInputChange}
+              />
+              {errors.subject && <p className="text-red-400 text-xs mt-1">{errors.subject}</p>}
             </motion.div>
-            <motion.div 
-              variants={itemVariantLeft}
-              initial='initial'
-              whileInView='animate'
-              viewport={{
-                margin: viewMargin
-              }}
-              className={`flex flex-col pb-2 ${!(errors?.subject) && 'lg:pb-6'}`}
-            >
-              <Input type="subject" placeholder="Subject" className="w-full" name="subject" onChange={handleInputChange} value={formData.subject} />
-              {errors.subject && <p className="text-red-400 text-xs">{errors.subject}</p>}
-            </motion.div>
-            <motion.div
-              variants={itemVariantRight} 
-              initial='initial'
-              whileInView='animate'
-              viewport={{
-                margin: viewMargin
-              }}
-              className="flex flex-col lg:pb-2"
-            >
+
+            <motion.div variants={slideInRight} className="flex flex-col">
               <Textarea
-                className="h-[100px]"
-                placeholder="Type your message here" 
-                name="message" 
+                className="min-h-[100px]"
+                placeholder="Your message"
+                name="message"
                 value={formData.message}
                 onChange={handleInputChange}
               />
-              {errors.message && <p className="text-red-400 text-xs">{errors.message}</p>}
+              {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
             </motion.div>
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: 50,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                transition: { 
-                  duration: 0.5,
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 10,
-                 },
-              }}
-              viewport={{
-                margin: "-10% 0px -10% 0px",
-              }}
-              className="flex items-center justify-center lg:justify-start"
-            >
-              <Button 
-                type="submit" 
-                className="w-full md:max-w-36 text-sm h-[30px] mt-2"
+
+            <motion.div variants={fadeInUp} className="flex justify-center lg:justify-start">
+              <Button
+                type="submit"
+                className="w-full md:w-auto min-w-36"
                 onClick={handleSubmit}
+                disabled={isSubmitting}
               >
-                Send message
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </Button>
             </motion.div>
           </form>
-        </div>
-        {/* Info */}
-        <div className="flex-1 flex items-center lg:justify-end order-2 lg:order-none mt-4 md:mt-0 mb-8 lg:mb-0 lg:pr-10 lg:pl-4">
-          <motion.ul
-            /* variants={{
-              initial: {},
-              animate: { staggerChildren: 0.2}
-            }}
-            initial='initial'
-            whileInView='animate'
-            viewport={{
-              margin: "-20% 0px -20% 0px",
-            }} */
-            className="flex flex-col gap-10 w-full"
-          >
-            {info.map((item, index) => {
-              return (
-                <motion.li 
-                  variants={{
-                    initial: {
-                      opacity: 0,
-                      y: -50,
-                    },
-                    animate: {
-                      opacity: 1,
-                      y: 0,
-                      transition: { 
-                        duration: 0.5,
-                        //delay: index * 0.2
-                        staggerChildren: 0.2
-                      },
-                    },
-                  }}
-                  initial='initial'
-                  whileInView='animate'
-                  viewport={{
-                    margin: "-20% 0px -20% 0px",
-                  }}
-                  key={index} 
-                  className="flex items-center gap-6"
-                >
-                  <div className="min-w-[52px] h-[52px] lg:min-w-[60px] lg:h-[60px] bg-[#27272c60] text-accent rounded-md flex items-center justify-center">
-                    <div className="text-[25px]">{item.icon}</div>
-                  </div>
-                  <motion.div 
-                    variants={{
-                      initial: {
-                        opacity: 0,
-                        x: -50,
-                      },
-                      animate: {
-                        opacity: 1,
-                        x: 0,
-                        transition: { 
-                          delay: 0.4,
-                          duration: 0.3,
-                        },
-                      },
-                    }}
-                    className="flex flex-col"
-                  >
-                    <p className="text-white/60 text-sm">{item.title}</p>
-                    <h3 className="text-base text-ellipsis line-clamp-2">
-                      {item.value}
-                    </h3>
-                  </motion.div>
-                </motion.li>
-              );
-            })}
+        </motion.div>
+
+        {/* Contact Info */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="flex-1 lg:pl-8"
+        >
+          <motion.ul className="flex flex-col gap-8">
+            {contactInfo.map((item, index) => (
+              <motion.li
+                key={index}
+                variants={fadeInUp}
+                custom={index}
+                className="flex gap-4 items-center"
+              >
+                <div className="min-w-[52px] h-[52px] bg-[#27272c60] text-accent rounded-md flex items-center justify-center">
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="text-white/60 text-sm">{item.title}</p>
+                  <p className="text-base line-clamp-2">{item.value}</p>
+                </div>
+              </motion.li>
+            ))}
           </motion.ul>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

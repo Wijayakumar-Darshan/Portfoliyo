@@ -2,16 +2,19 @@
 
 import { motion } from "framer-motion";
 
-const TextShadingView = ({ children }) => {
-  const text = children.split("");
-
+const TextShadingView = ({ children, as: Tag = "div" }) => {
+  const text = typeof children === "string" ? children.split("") : [];
+  
   const charVarient = {
     hidden: { opacity: 0 },
     reveal: { opacity: 1 },
   };
 
+  // Create the motion component dynamically
+  const MotionComponent = motion[Tag];
+
   return (
-    <motion.div
+    <MotionComponent
       initial="hidden"
       whileInView="reveal"
       transition={{ staggerChildren: 0.02, delay: 1 }}
@@ -25,7 +28,7 @@ const TextShadingView = ({ children }) => {
           {char}
         </motion.span>
       ))}
-    </motion.div>
+    </MotionComponent>
   );
 };
 
