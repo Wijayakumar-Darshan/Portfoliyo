@@ -1,384 +1,182 @@
 "use client";
 
 import Image from "next/image";
-import {
-  animate,
-  motion,
-  useInView,
-  useScroll,
-  useTransform,
-} from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import useCustomScroll from "../hooks/useCustomScroll";
+import { motion, useInView } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import MotionBtn from "@/components/MotionBtn";
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
-import isMobile from "is-mobile";
-
-//import ProjectItem from "@/components/ProjectItem";
-/* import dynamic from "next/dynamic";
-const ProjectItem = dynamic(() => import("@/components/ProjectItem") , {
-  ssr: false,
-}); */
 
 const Project = () => {
-
   const projects = [
     {
-      title: "BikzIK E-Commerce Platform",
-      image: "/assets/projects/BikzIK.png",
-      description: "BIKZIK is a modern, full-stack e-commerce platform that offers seamless shopping experiences. It is built using the latest technologies with features like user authentication, product management, and cloud image storage.",
-      link: "https://bikzik.vercel.app",
-      git: "https://github.com/Buddika-Kasun/BikzIK_E-commarce_Web-MERN-"
-    },
-    {
-      title: "My Portfolio",
-      image: "/assets/projects/Portfolio.png",
-      description: "A sleek and responsive personal portfolio website built with Next.js 15, React 19, and Tailwind CSS. It showcases projects, skills, and experiences with smooth animations powered by Framer Motion. Optimized for performance and accessibility.",
-      link: "https://buddikakasun.vercel.app", 
-      git: "https://github.com/Buddika-Kasun/Portfolio" 
-    },    
-    {
-      title: "UniCore ERP System",
-      image: "/assets/projects/Unicore.png",
-      description: "UniCore is a powerful ERP system built with Next.js, React, and MongoDB, designed to streamline university management with modules for resource utilization, reservations, user profiles, and administrative operations.",
-      link: "",    
-      git: "https://github.com/Buddika-Kasun/UMS_Unicore_ERP-NextJs-",
-    },
-    {
-      title: "Supplement Shop Admin",
-      image: "/assets/projects/SupplementAdmin.png",
-      description: "A modern admin dashboard for managing a supplement shop. Built with Next.js 14, MongoDB, and Tailwind CSS, it features CRUD operations for categories, subcategories, products, and admin users, with secure OAuth authentication.",
+      title: "Hotel Management System",
+      image: "/assets/projects/Hotel.png",
+      description: "A modern, full-stack management platform offering seamless experiences with features like user authentication, employee management, event management, travel management, and food management.",
       link: "",
-      git: "https://github.com/Buddika-Kasun/Suppliment_shop_Admin_Web-NextJs-"
+      git: "https://github.com/Wijayakumar-Darshan/Hotel"
     },
     {
-      title: "Supplement Shop Client",
-      image: "/assets/projects/SupplementClient.png",
-      description: "A sleek and responsive supplement store built with Next.js 14, MongoDB, and Styled Components. Features include product listings, category-based filtering, featured product banners, and a shopping cart for a seamless user experience.",
+      title: "My Portfolio", 
+      image: "/assets/projects/Portfoliyo.png",
+      description: "A sleek and responsive personal portfolio built with Next.js 15, React 19, and Tailwind CSS. Showcases projects, skills, and experiences with smooth animations powered by Framer Motion.",
       link: "",
-      git: "https://github.com/Buddika-Kasun/Suppliment_shop_User_Web-NextJs-",
+      git: "https://github.com/Wijayakumar-Darshan/Portfoliyo"
     },
   ];
 
-  const { scrollYProgress } = useCustomScroll({
-    sectionsClassName: "projects",
-  }); //console.log(scrollYProgress); output = 0 to 1 value
-
-  /* const ref2 = useRef();
-  const { scrollYProgress: scroll } = useScroll(ref2);
-  const xxTranslate = useTransform(scroll, [0,1], [0, - window?.innerWidth * projects?.length]); console.log(xxTranslate); */
-
-  // Dynamically calculate the X translation
-  //const translateX = scrollYProgress * -window.innerWidth * (projects?.length - 0.55 || 1);
-  const [translateX, setTranslateX] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { margin: "-20% 0px -20% 0px" });
 
   useEffect(() => {
-    // Add an event listener to handle scroll and update the translateX value dynamically
-    const handleScroll = () => {
-      const progress = scrollYProgress;
-      const width = window?.innerWidth || 0;
-      const translation =
-        progress * -width * (projects?.length - 0.55 || 1);
-      setTranslateX(translation);
-    };
-
-    // Trigger the scroll update once at mount
-    handleScroll();
-
-    // Add event listener
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [scrollYProgress, projects]);
-
-  const imageVariant = {
-    initial: {
-      opacity: 0,
-      y: 500,
-      x: -500,
-    },
-    animate: {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeInOut",
-      },
-    },
-  };
-
-  const textVariant = {
-    initial: {
-      opacity: 0,
-      y: 500,
-      x: 500,
-    },
-    animate: {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeInOut",
-        staggerChildren: 0.5,
-      },
-    },
-  };
-  
-
-  const ListItem = ({ item }) => {
-    const ref = useRef();
-
-    const inView = useInView(ref, { margin: "-100px" });
-
-    return (
-      <div
-        ref={ref}
-        className="h-full min-w-full overflow-hidden flex flex-col lg:flex-row lg:gap-20 items-start  lg:justify-center lg:px-8 lg:pl-16"
-      >
-        <div className="w-full lg:min-w-[400px] lg:max-w-[400px] rounded-md">
-          <Image
-            src={item.image}
-            width={200}
-            height={200}
-            alt={item.title}
-            loading="lazy"
-            className="w-full h-full object-cover rounded-md"
-          />
-        </div>
-        <div className="flex flex-col gap-4 p-2 lg:p-0">
-          <h2 className="text-lg lg:text-3xl font-semibold text-ellipsis line-clamp-2 leading-tight lg:leading-normal text-accent">
-            {item.title}
-          </h2>
-          <div className="lg:py-4 leading-tight lg:leading-normal">{item.description}</div>
-          <div className="flex gap-6">
-            { 
-              item.link &&
-              <Link
-                href={item.link}
-                target="_blank"
-                className="bg-accent rounded-lg w-fit px-4 text-primary lg:hover:bg-accent-hover cursor-none lg:hover:scale-105 lg:hover:transition-all duration-200"
-              >
-                View Project
-              </Link>
-            }
-            <MotionBtn
-              whileHover={{ rotate: 360, scale: 1.2 }}
-              transition={{
-                duration: 0.5,
-                type: "spring",
-                stiffness: 400,
-                damping: 10,
-              }}
-            >
-              <Link href={item.git} target="_blank" className='w-9 h-9 border-[1.5px] border-accent rounded-full flex justify-center items-center text-accent text-base hover:bg-accent hover:text-primary hover:transition-all duration-500 cursor-none'>
-                <FaGithub />
-              </Link>
-            </MotionBtn>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const ref = useRef(null);
-
-  const inView = useInView(ref, { margin: "-40% 0px -40% 0px" });
-
-  const isInMobile = isMobile();
-
-  const leftVariant = {
-    initial: {
-      opacity: 0,
-      x: -100,
-    },
-    animate: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeInOut",
-      },
+    // Check if window is defined (client-side)
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth < 1024);
+      };
+      
+      // Set initial value
+      handleResize();
+      
+      // Add event listener
+      window.addEventListener('resize', handleResize);
+      
+      // Clean up
+      return () => window.removeEventListener('resize', handleResize);
     }
-  }
+  }, []);
 
-  const rightVariant = {
-    initial: {
-      opacity: 0,
-      x: 100,
-    },
-    animate: {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
       opacity: 1,
-      x: 0,
       transition: {
-        duration: 0.5,
-        ease: "easeInOut",
-      },
+        staggerChildren: 0.2
+      }
     }
-  }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const imageVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    },
+    hover: {
+      scale: 1.03,
+      transition: { duration: 0.3 }
+    }
+  };
 
   return (
-    <div
-      //ref={ref}
-      className="container max-auto lg:pt-[120px] mb-8 lg:mb-0 min-h-[calc(100vh)] h-full relative projects z-10"
+    <section 
+      id="projects"
+      ref={containerRef}
+      className="relative py-20 lg:py-32 px-4 lg:px-8 min-h-screen"
     >
-      {
-        !isInMobile ? (
-          /* Desktop */
-          <>
-          <div className="sticky hidden lg:block top-24 lg:top-28 w-full overflow-hidden">
-            <motion.h1 
-              initial={{
-                opacity: 0,
-                y: -50,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.8,
-                },
-              }}
-              viewport={{
-                margin: "-15% 0px -25% 0px",
-                //once: true,
-              }}
-              className="text-2xl font-semibold pb-4 lg:pb-8"
-            >
-              Projects
-            </motion.h1>
-            <motion.div
-              className="flex h-full lg:items-center w-full sticky top-0 gap-8"
-              style={{
-                transform: `translateX(${translateX}px)`, // Apply X translation based on scroll progress
-                transition: "transform 0.1s ease-out", // Smooth transition
-              }}
-              //style={{x: xxTranslate}}
-              
-            >
-              {projects.map((project, index) => (
-                <ListItem key={index} item={project} />
-              ))}
-            </motion.div>
-          </div>
-          {/* Add extra space for smooth scrolling */}
-          <div className="hidden lg:block">
-            {[...Array(projects.length)].map((_, i) => (
-              <div key={i} className="min-h-[100vh]" />
-            ))}
-          </div>
-          </>
-        ) : (
-          /* Mobile */
-          <div className="lg:hidden w-full">
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: -50,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.8,
-                },
-              }}
-              viewport={{
-                margin: "-25% 0px -25% 0px",
-                //once: true,
-              }}
-              className="text-2xl font-semibold pb-4 lg:pb-8"
-            >
-                Projects
-            </motion.h1>
-            <div className="flex flex-col gap-16">
-              {projects.map((project, index) => (
-                //<ProjectItem item={project} key={index} />
-                // <ListItem key={index} item={project} />
-                <motion.div
-                  key={index}
-                  variants={textVariant}
-                  //initial="initial"
-                  //animate={inView ? 'animate' : 'initial'}
-                  //whileInView="animate"
-                  //viewport={{amount: 0.5}}
-                  className="h-full min-w-full overflow-hidden flex flex-col lg:flex-row lg:gap-20 items-start  lg:justify-center lg:px-8 lg:pl-16"
-                >
-                  <motion.div
-                    variants={leftVariant}
-                    initial='initial'
-                    whileInView='animate'
-                    viewport={{
-                      margin: "-25% 0px -25% 0px",
-                    }}
-                    className="w-full lg:min-w-[400px] lg:max-w-[400px] rounded-md"
-                  >
-                    <Image
-                      src={project.image}
-                      width={200}
-                      height={200}
-                      alt={project.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover rounded-md -z-10"
-                      />
-                  </motion.div>
-                  <div className="flex flex-col gap-4 p-2 lg:p-0">
-                    <motion.h2 
-                      variants={rightVariant}
-                      initial='initial'
-                      whileInView='animate'
-                      viewport={{
-                        margin: "-25% 0px -25% 0px",
-                      }}
-                      className="text-lg lg:text-3xl font-semibold text-ellipsis line-clamp-2 leading-tight lg:leading-normal text-accent">
-                      {project.title}
-                    </motion.h2>
-                    <motion.div
-                      variants={leftVariant}
-                      initial='initial'
-                      whileInView='animate'
-                      viewport={{
-                        margin: "-25% 0px -25% 0px",
-                      }}
-                      className="lg:py-4 leading-tight lg:leading-normal">
-                        {project.description}
-                      </motion.div>
-                    <motion.div
-                      variants={rightVariant}
-                      initial='initial'
-                      whileInView='animate'
-                      viewport={{
-                        margin: "-25% 0px 0px 0px",
-                      }}
-                      className="flex gap-6"
-                    >
-                      { 
-                        project.link &&
-                        <Link
-                        href={project.link}
-                        target="_blank"
-                        className="bg-accent rounded-lg w-fit px-4 text-primary lg:hover:bg-accent-hover cursor-none"
-                        >
-                          View Project
-                        </Link>
-                      }
-                        <Link href={project.git} target="_blank" className='w-9 h-9 border-[1.5px] border-accent rounded-full flex justify-center items-center text-accent text-base hover:bg-accent hover:text-primary hover:transition-all duration-500 cursor-none'>
-                          <FaGithub />
-                        </Link>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )
-      }
+      <div className="max-w-7xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-3xl lg:text-5xl font-bold mb-12 lg:mb-20 text-center text-accent"
+        >
+          My Projects
+        </motion.h2>
 
-    </div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "show" : "hidden"}
+          className="grid gap-16 lg:gap-24"
+        >
+          {projects.map((project, index) => (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              className={`flex flex-col ${!isMobile && index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 lg:gap-12 items-center`}
+            >
+              {/* Image */}
+              <motion.div
+                variants={imageVariants}
+                whileHover="hover"
+                className="w-full lg:w-1/2 rounded-xl overflow-hidden shadow-2xl"
+              >
+                <Image
+                  src={project.image}
+                  width={800}
+                  height={500}
+                  alt={project.title}
+                  className="w-full h-auto object-cover"
+                />
+              </motion.div>
+
+              {/* Content */}
+              <div className="w-full lg:w-1/2">
+                <motion.h3 
+                  className="text-2xl lg:text-3xl font-bold mb-4 text-accent"
+                >
+                  {project.title}
+                </motion.h3>
+                
+                <motion.p 
+                  className="text-white/80 mb-6 leading-relaxed"
+                >
+                  {project.description}
+                </motion.p>
+
+                <motion.div className="flex gap-4">
+                  {project.link && (
+                    <Link
+                      href={project.link}
+                      target="_blank"
+                      className="px-6 py-2 bg-accent text-primary rounded-lg font-medium hover:bg-accent-hover transition-all duration-300"
+                    >
+                      View Live
+                    </Link>
+                  )}
+                  
+                  <MotionBtn
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{
+                      duration: 0.5,
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 10,
+                    }}
+                  >
+                    <Link 
+                      href={project.git} 
+                      target="_blank" 
+                      className="w-10 h-10 border-2 border-accent rounded-full flex justify-center items-center text-accent text-lg hover:bg-accent hover:text-primary transition-all duration-300"
+                    >
+                      <FaGithub />
+                    </Link>
+                  </MotionBtn>
+                </motion.div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 };
 
